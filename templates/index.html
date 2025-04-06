@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargo Stowage Management</title>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>🚀 BAS Stowage Management System</h1>
+    </header>
+
+    <main>
+        <div id="messageArea" class="hidden"></div>
+
+        <!-- Section 1: Initialization -->
+        <div class="section">
+            <h2>📦 1. Initialization</h2>
+            <form id="importContainersForm">
+                <label for="containersFile">Import Containers (CSV):</label>
+                <input type="file" id="containersFile" name="containersFile" accept=".csv" required>
+                <button type="submit">Upload Containers</button>
+            </form>
+            <pre id="containersResult" class="hidden"></pre>
+
+            <form id="importItemsForm">
+                <label for="itemsFile">Import New Items (CSV):</label>
+                <input type="file" id="itemsFile" name="itemsFile" accept=".csv" required>
+                <button type="submit">Upload Items</button>
+            </form>
+            <pre id="itemsResult" class="hidden"></pre>
+
+            <button id="triggerPlacementButton">Calculate Placement Plan</button>
+            <pre id="placementResult" class="hidden"></pre>
+            
+        </div>
+
+        <!-- Section 2: Item Operations -->
+        <div class="section">
+            <h2>🔍 2. Item Operations</h2>
+            <form id="searchForm">
+                <label for="searchQuery">Search Item (by Name or ID):</label>
+                <input type="text" id="searchQuery" name="searchQuery" required>
+                <label for="searchType">Search by:</label>
+                <select id="searchType" name="searchType">
+                    <option value="itemName">Name</option>
+                    <option value="itemId">ID</option>
+                </select>
+                <button type="submit">Search</button>
+            </form>
+            <pre id="searchResult" class="hidden"></pre>
+
+            <h3>Confirm Retrieval</h3>
+            <p class="coming-soon">🚧 Under Development</p> <!-- Added tag -->
+
+            <h3>Manual Place</h3>
+            <p class="coming-soon">🚧 Coming Soon</p> <!-- Added tag -->
+        </div>
+
+        <!-- Section 3: Simulation -->
+        <div class="section">
+            <h2>🕒 3. Simulation</h2>
+            <form id="simulateForm">
+                <label for="simulateDays">Simulate Days:</label>
+                <input type="number" id="simulateDays" name="numOfDays" value="1" required>
+
+                <label for="simulateItems">Items to Be Used Per Day (Item IDs, comma-separated):</label>
+                <input type="text" id="simulateItems" name="itemsToBeUsedPerDay" placeholder="e.g., item1,item2,item3">
+
+                <button type="submit">Simulate Time</button>
+            </form>
+            <pre id="simulateResult" class="hidden"></pre>
+        </div>
+
+        <!-- Section 4: Export & Logs -->
+        <div class="section">
+            <h2>📜 4. Export & Logs</h2>
+            <a href="/api/export/arrangement" download="arrangement.csv">
+                <button type="button">Export Current Arrangement (CSV)</button>
+            </a>
+            <form id="logsForm">
+                <h3>View Logs</h3>
+                <label for="logStartDate">Start Date (YYYY-MM-DDTHH:MM:SSZ):</label>
+                <input type="text" id="logStartDate" name="startDate" required>
+                <label for="logEndDate">End Date (YYYY-MM-DDTHH:MM:SSZ):</label>
+                <input type="text" id="logEndDate" name="endDate" required>
+                <label for="logActionType">Action Type (Optional: placement, retrieval, rearrangement, disposal):</label>
+                <input type="text" id="logActionType" name="actionType">
+                <button type="submit">Get Logs</button>
+            </form>
+            <pre id="logsResult" class="hidden"></pre>
+        </div>
+
+        <!-- Section 5: Waste & Return -->
+        <div class="section">
+            <h2>♻️ 5. Waste & Return</h2>
+            <p class="coming-soon">🚧 Under Development</p> <!-- Added tag -->
+        </div>
+
+    </main>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

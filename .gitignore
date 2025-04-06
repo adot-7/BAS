@@ -1,0 +1,25 @@
+# Virtual Environment
+venv/
+*.venv/
+env/
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# IDE/Editor specific folders
+.idea/
+.vscode/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Logs or output files (if any created during testing)
+*.log
+# Maybe ignore generated CSVs if they are just test output
+# *.csv
+
+# Instance folder for Flask (if used)
+instance/
