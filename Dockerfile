@@ -32,4 +32,4 @@ EXPOSE 8000
 
 # Define the command to run your Flask application
 # Ensure app.py runs on host='0.0.0.0' to be accessible from outside the container
-CMD ["python3", "app.py"]
+CMD ["python3", "main.py"]
