@@ -223,7 +223,6 @@ def calculate_placements() -> Dict:
         )
     for box in packer.bins:
         print(":::::::::::", box.string())
-        current_stowage_state[box.partno] = []
         print("FITTED ITEMS:")
         for item in box.items:
             start_pos = (item.position[0], item.position[1], item.position[2])
@@ -375,6 +374,10 @@ def api_placement():
                 defined_containers[container["containerId"]] = container #Adding the container to defined containers.
             except KeyError as e:
                 print(f"Error: Missing key {e} in container data.")
+    print(items_ids_to_place)
+    print(item_properties)
+    print(zone_wise_containers)
+    print(defined_containers)
     result = calculate_placements()
 
    
