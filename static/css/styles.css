@@ -1,76 +1,720 @@
-body {
-    font-family: 'Roboto', sans-serif;
-    line-height: 1.6;
+/* Reset & Base */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    background: linear-gradient(to bottom, #0b3d91, #000);
-    color: #fff;
 }
 
-header {
+:root {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Fira Code', monospace;
+
+    /* Refined Color Palette */
+    --color-bg: #0b1120;
+    /* Even darker slate-950 */
+    --color-surface: #111827;
+    /* darker slate-900 */
+    --color-card: #1f2937;
+    /* slate-800 */
+    --color-card-header: #111827;
+    /* Header matches surface */
+    --color-border: #374151;
+    /* slate-700 adjusted */
+    --color-border-subtle: #2a3341;
+    /* A slightly lighter border */
+    --color-muted: #4b5563;
+    /* slate-600 adjusted */
+    --color-text: #e5e7eb;
+    /* slate-200 */
+    --color-text-dim: #9ca3af;
+    /* slate-400 */
+    --color-text-muted: #6b7280;
+    /* slate-500 */
+    --color-text-heading: #f3f4f6;
+    /* slate-100 for titles */
+
+    --color-primary: #3b82f6;
+    /* blue-500 */
+    --color-primary-hover: #2563eb;
+    /* blue-600 */
+    --color-primary-light: rgba(59, 130, 246, 0.1);
+    /* Light primary for hovers/bg */
+
+    --color-secondary: #4b5563;
+    /* slate-600 used as secondary */
+    --color-secondary-hover: #6b7280;
+    /* slate-500 */
+
+    --color-success: #10b981;
+    /* emerald-500 */
+    --color-success-bg: rgba(16, 185, 129, 0.1);
+    --color-error: #ef4444;
+    /* red-500 */
+    --color-error-bg: rgba(239, 68, 68, 0.1);
+    --color-warning: #f59e0b;
+    /* amber-500 */
+    --color-warning-bg: rgba(245, 158, 11, 0.1);
+
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.375rem;
+    /* Slightly less rounded */
+    --border-radius-lg: 0.5rem;
+    --border-radius-full: 9999px;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.07);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.15), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    --container-max-width: 1840px;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.antialiased {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Layout Utilities */
+.container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    /* Like max-w-8xl, slightly wider */
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+/* Increased padding */
+.py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.py-10 {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+}
+
+/* Increased padding */
+
+/* Grid */
+.grid {
+    display: grid;
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* For forms */
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+
+    /* Large screens */
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1536px) {
+
+    /* 2X Large screens (like 1920px width) */
+    .\32xl\:grid-cols-4 {
+        /* Need to escape the leading digit for class names */
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.gap-8 {
+    gap: 2rem;
+}
+
+/* Increased grid gap */
+
+/* Spacing */
+.space-y-3> :not([hidden])~ :not([hidden]) {
+    margin-top: 0.75rem;
+}
+
+.space-y-4> :not([hidden])~ :not([hidden]) {
+    margin-top: 1rem;
+}
+
+.space-y-5> :not([hidden])~ :not([hidden]) {
+    margin-top: 1.25rem;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.mt-3 {
+    margin-top: 0.75rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mt-10 {
+    margin-top: 2.5rem;
+}
+
+/* For footer */
+
+/* Flexbox */
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.flex-grow {
+    flex-grow: 1;
+}
+
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+/* Prevent shrinking in flex */
+
+/* Text & Typography */
+.text-slate-100 {
+    color: #f3f4f6;
+}
+
+.text-slate-200 {
+    color: var(--color-text);
+}
+
+.text-slate-400 {
+    color: var(--color-text-dim);
+}
+
+.text-slate-500 {
+    color: var(--color-text-muted);
+}
+
+.text-blue-400 {
+    color: #60a5fa;
+}
+
+.text-blue-500 {
+    color: var(--color-primary);
+}
+
+.text-teal-400 {
+    color: #2dd4bf;
+}
+
+.text-orange-400 {
+    color: #fb923c;
+}
+
+.text-red-400 {
+    color: #f87171;
+}
+
+.text-indigo-400 {
+    color: #818cf8;
+}
+
+.text-emerald-400 {
+    color: #34d399;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.text-md {
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.text-center {
     text-align: center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #ffcc00;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-h1 {
-    margin: 0;
-    font-size: 2.5rem;
+/* Header */
+.app-header {
+    /* Renamed */
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--color-border);
+    /* Add border */
 }
+
+.sticky {
+    position: sticky;
+}
+
+.top-0 {
+    top: 0;
+}
+
+.z-50 {
+    z-index: 50;
+}
+
+/* Cards */
+.card {
+    background-color: var(--color-card);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Optional hover effect for cards */
+/* .card:hover {
+    border-color: var(--color-border-subtle);
+    box-shadow: var(--shadow-md);
+} */
+
+.card-header {
+    padding: 1rem 1.25rem;
+    /* Slightly reduced vertical padding */
+    background-color: var(--color-card-header);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.card-title {
+    font-size: 1.125rem;
+    /* text-lg */
+    font-weight: 600;
+    color: var(--color-text-heading);
+    /* Brighter title */
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    /* Adjusted gap */
+}
+
+.card-description {
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    margin-top: 0.25rem;
+    line-height: 1.4;
+}
+
+.card-body {
+    padding: 1.25rem;
+    /* Keep padding */
+    flex-grow: 1;
+    /* Add subtle background pattern maybe? */
+    /* background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px); background-size: 20px 20px; */
+}
+
+/* Buttons */
+.button {
+    display: inline-flex;
+    align-items: center;
+    /* justify-content: center; Ensure added in HTML */
+    gap: 0.5rem;
+    padding: 0.65rem 1.3rem;
+    /* Slightly adjusted padding */
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    font-size: 0.875rem;
+    /* text-sm */
+    cursor: pointer;
+    transition: all 150ms ease-in-out;
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: var(--color-text);
+    white-space: nowrap;
+    /* Prevent wrapping */
+}
+
+.button:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.button i {
+    font-size: 0.9em;
+    /* Slightly smaller icons in buttons */
+}
+
+.button-primary {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.button-primary:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.button-primary:active {
+    transform: translateY(0);
+}
+
+.button-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+    border-color: var(--color-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.button-secondary:hover {
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.button-secondary:active {
+    transform: translateY(0);
+}
+
+.button.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.w-full {
+    width: 100%;
+}
+
+/* Forms */
+.form-label {
+    display: block;
+    font-size: 0.8rem;
+    /* smaller label */
+    font-weight: 500;
+    color: var(--color-text-dim);
+    margin-bottom: 0.3rem;
+}
+
+.form-input,
+.form-select {
+    display: block;
+    width: 100%;
+    background-color: var(--color-surface);
+    /* Use darker surface */
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    padding: 0.65rem 0.9rem;
+    /* Adjusted padding */
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    /* text-sm */
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.8;
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+    /* Blue glow */
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    /* Dimmer arrow */
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+/* File Upload Specific */
+.file-upload-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: var(--color-surface);
+    /* Match input bg */
+    border-radius: var(--border-radius-md);
+    border: 2px dashed var(--color-border);
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.file-upload-label:hover {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-light);
+}
+
+.file-upload-input {
+    /* Hide actual input */
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.file-upload-text {
+    font-size: 0.9rem;
+    color: var(--color-text-dim);
+    /* Dimmer text */
+    font-weight: 500;
+}
+
+.file-upload-label:hover .file-upload-text {
+    color: var(--color-primary);
+}
+
+.file-upload-label i {
+    transition: color 0.15s ease;
+}
+
+.file-upload-label:hover i {
+    color: var(--color-primary);
+}
+
+
+/* Result Output */
+.result-output {
+    background-color: var(--color-bg);
+    /* Darkest bg */
+    padding: 0.8rem 1rem;
+    /* Reduced padding */
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    /* Slightly adjusted size */
+    line-height: 1.5;
+    /* Increased line height slightly */
+    max-height: 250px;
+    overflow: auto;
+    border: 1px solid var(--color-border-subtle);
+    /* Use subtle border */
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-height: 70px;
+    /* Give it some min height when visible */
+    color: var(--color-text-dim);
+    /* Dim the default text slightly */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.result-output:not(.hidden):hover {
+    border-color: var(--color-border);
+    /* Darken border on hover */
+}
+
+.result-output.error {
+    border-color: var(--color-error);
+    background-color: var(--color-error-bg);
+    /* Add subtle red bg */
+    color: #fca5a5
+        /* Lighter red text */
+}
+
+/* Consider success styling? */
+.result-output.success {
+    /* Example, not currently used by JS */
+    border-color: var(--color-success);
+    background-color: var(--color-success-bg);
+    color: #6ee7b7;
+}
+
+/* Notification Banner */
+.notification-banner {
+    position: fixed;
+    top: 5rem;
+    /* Position below sticky header */
+    right: 1.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius-md);
+    color: white;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: block;
+    background-color: var(--color-secondary);
+    border-left: 4px solid var(--color-secondary-hover);
+    /* Add accent border */
+    max-width: 400px;
+    /* Prevent it getting too wide */
+}
+
+.notification-banner.success {
+    background-color: var(--color-surface);
+    color: var(--color-success);
+    border-left-color: var(--color-success);
+}
+
+.notification-banner.error {
+    background-color: var(--color-surface);
+    color: var(--color-error);
+    border-left-color: var(--color-error);
+}
+
+.notification-banner.info {
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+    border-left-color: var(--color-primary);
+}
+
+
+/* Status Tag */
+.status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    background-color: var(--color-warning-bg);
+    /* Amber background */
+    border-radius: var(--border-radius-full);
+    font-size: 0.75rem;
+    /* xs */
+    font-weight: 500;
+    color: var(--color-warning);
+    /* Amber text */
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    /* Subtle amber border */
+}
+
+.status-tag i {
+    font-size: 0.8em;
+}
+
+/* Adjust icon size within tag */
+
+
+/* Hidden Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Dividers */
+hr.subtle-divider {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    /* Use main border color */
+    margin-top: 1rem;
+    /* Consistent spacing */
+    margin-bottom: 1rem;
+}
+
+/* Footer */
+footer {
+    padding: 1.5rem 1rem;
+    /* Adjusted padding */
+    margin-top: auto;
+    border-top: 1px solid var(--color-border);
+    /* Match header bottom border */
+    background-color: var(--color-surface);
+    /* Match header */
+}
+
+footer p {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+/* Misc */
+/* Add any other fine-tuning styles here */
 
 main {
-    padding: 20px;
-}
-
-.section {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-button {
-    margin-top: 10px; /* Adds space above the button */
-    margin-bottom: 10px; /* Adds space below the button */
-    background-color: #ffcc00;
-    color: #000;
-    border: none;
-    padding: 10px 15px;
-    font-size: 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #e6b800;
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-pre {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px;
-    border-radius: 5px;
-    color: #fff;
-    overflow-x: auto; /* Horizontal scrolling */
-    overflow-y: auto; /* Vertical scrolling */
-    max-height: 200px; /* Constrain the height */
-    font-size: 0.9rem; /* Adjust font size for better readability */
-    white-space: pre-wrap; /* Wrap long lines */
-    word-wrap: break-word; /* Break long words */
-}
-
-.hidden {
-    display: none;
+    flex-grow: 1; /* Allows main content to expand vertically */
+    /* Keep existing container and padding within main if needed */
+    /* For example, the .container.mx-auto.px-6.py-10 */
+    /* Styles apply *inside* main, flex-grow affects main itself */
+    width: 100%; /* Ensure main takes full width if not implicitly done */
 }

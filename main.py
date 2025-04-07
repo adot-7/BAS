@@ -98,11 +98,15 @@ def calculate_placements() -> Dict:
         preferred_zone_items_dict[preferred_zone].append(itemId)
         items_ids_to_place.remove(itemId)
     
-    
-
     current = time.time()
-    
+    total=0
     placements: List[Dict[str, Any]] = []
+    unplaced_items_ids = []
+    possible_container_ids = []
+
+    '''
+    This section handles first placement in preferred zones
+    '''
     for zone, container_ids in zone_wise_containers.items():
         packer = Packer()
         # Create bins for each container in the preferred zone
@@ -116,8 +120,6 @@ def calculate_placements() -> Dict:
                 max_weight=CONT_MAX_WEIGHT,
                 put_type=1
             ))
-        items = 0
-        unplaced_items = 0
 
         # Add items to the packer for the current zone
         if preferred_zone_items_dict.get(zone) is None:
@@ -137,7 +139,6 @@ def calculate_placements() -> Dict:
                 updown=False,  # Allow flipping
                 color='#0000E3')  # Default color
             )
-            items+=1
 
         # Perform packing
         packer.pack(
@@ -148,11 +149,10 @@ def calculate_placements() -> Dict:
             support_surface_ratio=0.750,
             number_of_decimals=0
         )
-
-        print(f"Placed items in containers of Zone: {zone}, number of items placed in the Zone:{items}")
-
         
         # Collect placements from the packing results
+        last_box_number = len(container_ids)
+        i=0
         for box in packer.bins:
             print(":::::::::::", box.string())
             current_stowage_state[box.partno] = []
@@ -175,12 +175,83 @@ def calculate_placements() -> Dict:
                 item_to_add = {'itemId': item.partno,'name':item.name,'containerId': box.partno,'position':position}
                 current_stowage_state[box.partno].append(item_to_add)
                 print("partno : ",item.partno)
-            unplaced_items+=len(packer.bins[-1].unfitted_items)
+                total+=1
+            i+=1
+            if i == last_box_number:
+                if len(box.unfitted_items) == 0:
+                    possible_container_ids.append(box.partno)
+                else:
+                    for item in box.unfitted_items:
+                        unplaced_items_ids.append(item.partno)
+    
+    '''
+    This section will handle the unplaced items, will place them in any container with number of unfitted items = 0
+    '''
+    packer = Packer()
+    for container_id in possible_container_ids:
+        container = defined_containers.get(container_id)
+        if not container:
+            continue
+        packer.addBin(Bin(
+            partno=container_id,
+            WHD=(container.get('width'), container.get('height'), container.get('depth')),
+            max_weight=CONT_MAX_WEIGHT,
+            put_type=1
+        ))
+    for item_id in unplaced_items_ids:
+        item = item_properties.get(int(item_id))
+        if not item:
+            continue
+        packer.addItem(Item(
+            partno=item_id,
+            name=item.get('name', 'unknown'),
+            typeof='cube',
+            WHD=(item['width'], item['height'], item['depth']),
+            weight=item.get('mass', 0),
+            level=100-int(item.get('priority', 0)),
+            loadbear=100,  # Default load-bearing capacity
+            updown=False,  # Allow flipping
+            color='#0000E3')  # Default color
+            )
+    packer.pack(
+            bigger_first=False,
+            distribute_items=True,
+            fix_point=False,
+            check_stable=False,
+            support_surface_ratio=0.750,
+            number_of_decimals=0
+        )
+    for box in packer.bins:
+        print(":::::::::::", box.string())
+        current_stowage_state[box.partno] = []
+        print("FITTED ITEMS:")
+        for item in box.items:
+            start_pos = (item.position[0], item.position[1], item.position[2])
+            end_pos = (item.position[0] + item.width, item.position[1] + item.height, item.position[2] + item.depth)
+            position = {
+                "startCoordinates": {
+                    "width": float(start_pos[0]),
+                    "height": float(start_pos[1]),
+                    "depth": float(start_pos[2])
+                },
+                "endCoordinates": {
+                    "width": float(end_pos[0]),
+                    "height": float(end_pos[1]),
+                    "depth": float(end_pos[2])
+                }
+            }
+            item_to_add = {'itemId': item.partno,'name':item.name,'containerId': box.partno,'position':position}
+            current_stowage_state[box.partno].append(item_to_add)
+            print("partno : ",item.partno)
+            total+=1
+       
     end = time.time()
     print("Time taken to place the items: ", end-current)
     for key, value in current_stowage_state.items():
         print(f"Container ID: {key}")
         print(f"Total Items: {len(value)}")
+    print(f"Total items placed: {total}\n")
+    items_placed_in_preferred_zones = total
     
     return end-current
 
@@ -261,7 +332,6 @@ def simulate_one_day(items_to_use: List, current_time: datetime.datetime) -> Tup
     changes = {
         "itemsUsed": items_used_today,
         "itemsExpired": items_newly_expired,
-        "itemsDepleted": items_used_today
     }
     return changes, new_time
 
@@ -346,6 +416,7 @@ def api_retrieve():
 @app.route("/api/place", methods=['POST'])
 def api_place():
     # Endpoint for astronaut MANUALLY placing an item somewhere, Under working
+
     return jsonify({"success": False})
 
 # --- 3. Waste Management ---
@@ -403,9 +474,7 @@ def api_simulate_day():
         total_changes["itemsExpired"].extend(
             item for item in changes_today["itemsExpired"] if item not in total_changes["itemsExpired"]
         )
-        total_changes["itemsDepleted"].extend(
-            item for item in changes_today["itemsDepleted"] if item not in total_changes["itemsDepleted"]
-        )
+
     # Add simulation log
     add_log("simulation", f"advance_{num_days}_days", {"newDate": current_simulated_time.isoformat()}, userId="system_simulation")
 
@@ -513,7 +582,6 @@ def api_import_items():
 
             print(item_properties)
             add_log("import", "items", {"count": imported_count, "errors": len(errors)}, userId="system_import")
-
             return jsonify({"success": True, "itemsImported": imported_count, "errors": errors})
         except pd.errors.ParserError:
              abort(400, description="Error parsing CSV file.")
