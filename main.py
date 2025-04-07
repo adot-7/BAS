@@ -12,8 +12,6 @@ from py3dbp import Packer, Bin, Item
 
 # --- Flask App Setup ---
 app = Flask(__name__)
-# Optional: configure secret key if using sessions later
-# app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a_default_secret_key")
 CONT_MAX_WEIGHT = 10000
 # --- In-Memory State Simulation ---
 # Simple demo state. Not constant across restarts
@@ -52,6 +50,7 @@ def add_log(actionType: str, itemId: str, details: Dict, userId: Optional[str] =
 
 def parse_iso_datetime(date_string: Optional[str]) -> Optional[datetime.datetime]:
     """Safely parses an ISO 8601 datetime string."""
+    date_string = str(date_string)
     if not date_string:
         return None
     try:
@@ -65,33 +64,32 @@ def parse_iso_datetime(date_string: Optional[str]) -> Optional[datetime.datetime
 def is_item_expired(item_id: str, current_time: datetime.datetime) -> bool:
     """Checks if an item is expired based on its properties."""
     props = item_properties.get(item_id)
-    if not props or not props.get('expiryDate'):
+    if not props or not props.get('expiry_date'):
         return False
-    expiry_date = parse_iso_datetime(props['expiryDate'])
+    expiry_date = parse_iso_datetime(props['expiry_date'])
     return expiry_date is not None and expiry_date <= current_time
 
 def is_item_depleted(item_id: str) -> bool:
     """Checks if an item has reached its usage limit."""
     props = item_properties.get(item_id)
-    if not props or props.get('usageLimit') is None: # None means infinite or not applicable
+    if not props or props.get('usage_limit') is None: # None means infinite or not applicable
         return False
     use_count = len(usage_log.get(item_id, {}).get("retrievals", []))
-    return use_count >= props['usageLimit']
+    return use_count >= props['usage_limit']
 
 # --- Core Logic Functions (Placeholders - *** REPLACE WITH YOUR ALGORITHMS ***) ---
 
 def calculate_placements() -> Dict:
     """
-    ***Placement Algorithm (3D Bin Packing) using py3dbp***
+    ***Placement Algorithm (3D Bin Packing) using py3dbp(modified)***
     
     """
+    global current_stowage_state
     print("Calculating Placements...")
     print(current_stowage_state)
     print(defined_containers)
     print(items_ids_to_place)
-    placements = []
-    rearrangements = []
-    packer = Packer()
+    
     preferred_zone_items_dict: Dict[str, List] = {} #{'zone': [itemid, item2id, etc]}
     for itemId in items_ids_to_place[:]:#global datatype defined above, making its copy cause shouldnt loop over it while removing items from it, fucks up the index
         preferred_zone = item_properties[itemId].get('preferredZone')
@@ -99,11 +97,14 @@ def calculate_placements() -> Dict:
             preferred_zone_items_dict[preferred_zone] = []
         preferred_zone_items_dict[preferred_zone].append(itemId)
         items_ids_to_place.remove(itemId)
-    print(preferred_zone_items_dict)
+    
+    
+
     current = time.time()
-    unplaced_items = 0
+    
     placements: List[Dict[str, Any]] = []
     for zone, container_ids in zone_wise_containers.items():
+        packer = Packer()
         # Create bins for each container in the preferred zone
         for container_id in container_ids:
             container = defined_containers.get(container_id)
@@ -116,6 +117,7 @@ def calculate_placements() -> Dict:
                 put_type=1
             ))
         items = 0
+        unplaced_items = 0
 
         # Add items to the packer for the current zone
         if preferred_zone_items_dict.get(zone) is None:
@@ -141,8 +143,8 @@ def calculate_placements() -> Dict:
         packer.pack(
             bigger_first=False,
             distribute_items=True,
-            fix_point=True,
-            check_stable=True,
+            fix_point=False,
+            check_stable=False,
             support_surface_ratio=0.750,
             number_of_decimals=0
         )
@@ -174,7 +176,6 @@ def calculate_placements() -> Dict:
                 current_stowage_state[box.partno].append(item_to_add)
                 print("partno : ",item.partno)
             unplaced_items+=len(packer.bins[-1].unfitted_items)
-        
     end = time.time()
     print("Time taken to place the items: ", end-current)
     for key, value in current_stowage_state.items():
@@ -191,9 +192,9 @@ def find_best_retrieval_option(search_key: str, search_type: str) -> Dict:
     for containerId, items_list_for_container in current_stowage_state.items():
         for item_dict in items_list_for_container:
             matches = False
-            if search_type == 'itemId' and item_dict.get('itemId') == search_key:
+            if (search_type == 'itemId') and int(item_dict.get('itemId')) == int(search_key):
                 matches = True
-            elif search_type == 'itemName' and item_dict.get('name') == search_key:
+            elif search_type == 'itemName' and int(item_dict.get('name')) == int(search_key):
                 matches = True
             if matches:
                 found_items_options.append({
@@ -204,9 +205,11 @@ def find_best_retrieval_option(search_key: str, search_type: str) -> Dict:
                         "zone": defined_containers.get(containerId, {}).get('zone', 'Unknown'),
                         "position": item_dict.get('position', {})
                     },
-                    "retrievalSteps": None,
-                    "num_steps": None
+                    "retrievalSteps": [],
+                    "num_steps": 0  # Default to 0 steps if no calculation is provided
                 })
+
+            
 
     if not found_items_options:
         return {"found": False, "item": None, "retrievalSteps": []}
@@ -222,15 +225,17 @@ def generate_return_plan(waste_items_to_return: List[Dict], undock_containerId: 
     """
     return {}
 
-def simulate_one_day(items_to_use: List[Dict], current_time: datetime.datetime) -> Tuple[Dict, datetime.datetime]:
+def simulate_one_day(items_to_use: List, current_time: datetime.datetime) -> Tuple[Dict, datetime.datetime]:
 
     print(f"Simulating one day forward from {current_time}...")
     items_usable: List[Dict[str, Any]] = []
+    items_to_use = [int(i) for i in items_to_use]
     for i in items_to_use:
-        if i.get('itemId') in item_properties:
-            item_prop = i.copy()
-            item_prop['currentUsage'] = item_properties[i.get('itemId')].get('usageLimit')
-            item_prop['expiryDate'] = item_properties[i.get('itemId')].get('expiryDate')
+        if i in item_properties.keys():
+            item_prop = {}
+            item_prop['itemId'] = i
+            item_prop['currentUsage'] = item_properties[i].get('usage_limit')
+            item_prop['expiry_date'] = item_properties[i].get('expiry_date')
             items_usable.append(item_prop)
     print(items_usable)
 
@@ -238,13 +243,17 @@ def simulate_one_day(items_to_use: List[Dict], current_time: datetime.datetime) 
     items_newly_expired = []
 
     for item_dict in items_usable:
-        usage_limit = item_properties[item_dict['itemId']].get('usageLimit')
+        usage_limit = item_properties[item_dict['itemId']].get('usage_limit')
         if usage_limit is not None:
-            item_properties[item_dict['itemId']]['usageLimit'] = usage_limit - 1
-        if is_item_depleted(item_dict['itemId']):
-            items_used_today.append(item_dict['itemId'])
-        if is_item_expired(item_dict['itemId'], current_time=current_time):
-            items_newly_expired.append(item_dict['itemId'])
+            
+            if is_item_depleted(item_dict['itemId']):
+                items_used_today.append(item_dict['itemId'])
+                
+            if is_item_expired(item_dict['itemId'], current_time=current_time):
+                items_newly_expired.append(item_dict['itemId'])
+            
+            else:
+                item_properties[item_dict['itemId']]['usage_limit'] = usage_limit - 1
         
     # 2. Advance time
     new_time = current_time + datetime.timedelta(days=1)
@@ -252,6 +261,7 @@ def simulate_one_day(items_to_use: List[Dict], current_time: datetime.datetime) 
     changes = {
         "itemsUsed": items_used_today,
         "itemsExpired": items_newly_expired,
+        "itemsDepleted": items_used_today
     }
     return changes, new_time
 
@@ -267,13 +277,18 @@ def api_placement():
     """
     Calculates optimal placement for new items.
     """
+    global item_properties
+    global items_ids_to_place
+    global zone_wise_containers
+    global defined_containers
+
     if not request.is_json:
         abort(400, description="Request must be JSON.")
     
     data = request.get_json()
     
     if data.get("items"):
-        items_list = data.get("items") #Gives list of dict, with keys itemId, width, height,depth, priority, expiryDate, usageLimit, preferredZone
+        items_list = data.get("items") #Gives list of dict, with keys itemId, width, height,depth, priority, expiry_date, usage_limit, preferredZone
         for item in items_list:
             item_properties[item.get('itemId')] = item
             if item.get('itemId') not in items_ids_to_place:
@@ -369,8 +384,9 @@ def api_simulate_day():
     data = request.get_json()
 
     num_days = data.get('numOfDays')
-    items_to_be_used = data.get('itemsToBeUsedPerDay', []) # List of {itemId/name} used each day
-
+    items_to_be_used = data.get('itemsToBeUsedPerDay', []) # List of itemId used each day
+    print(num_days) #int
+    print(items_to_be_used) #list of str ids 
     if num_days is None or num_days < 1:
         num_days = 1
 
@@ -381,8 +397,15 @@ def api_simulate_day():
         current_simulated_time = new_sim_time # Update global time
 
         # Aggregate changes (simple list extend)
-        total_changes["itemsUsed"].extend(changes_today["itemsUsed"])
-        total_changes["itemsExpired"].extend(changes_today["itemsExpired"])
+        total_changes["itemsUsed"].extend(
+            item for item in changes_today["itemsUsed"] if item not in total_changes["itemsUsed"]
+        )
+        total_changes["itemsExpired"].extend(
+            item for item in changes_today["itemsExpired"] if item not in total_changes["itemsExpired"]
+        )
+        total_changes["itemsDepleted"].extend(
+            item for item in changes_today["itemsDepleted"] if item not in total_changes["itemsDepleted"]
+        )
     # Add simulation log
     add_log("simulation", f"advance_{num_days}_days", {"newDate": current_simulated_time.isoformat()}, userId="system_simulation")
 
@@ -395,6 +418,8 @@ def api_simulate_day():
 # --- 5. Import/Export ---
 @app.route("/api/import/containers", methods=['POST'])
 def api_import_containers():
+    global zone_wise_containers
+    global defined_containers
     files = list(request.files.values())
     file = files[0] if files else abort(400, description="No file part.")
     if file.filename == '':
@@ -442,6 +467,9 @@ def api_import_containers():
 
 @app.route("/api/import/items", methods=['POST'])
 def api_import_items():
+    global item_properties
+    global items_ids_to_place
+    
     # if 'itemsFile' not in request.files: abort(400, description="No file part.")
     files = list(request.files.values())
     file = files[0] if files else abort(400, description="No file part.")
@@ -472,9 +500,9 @@ def api_import_items():
                     item_dict['priority'] = int(item_dict.get('priority', 0))
                     item_dict['preferredZone'] = str(item_dict.pop('preferred_zone', 'default_zone'))
                     # Optional fields
-                    if item_dict.get('usageLimit') is not None: item_dict['usageLimit'] = int(item_dict['usageLimit'])
-                    # Keep expiryDate as string for now, parse when needed
-                    if item_dict.get('expiryDate') is not None: item_dict['expiryDate'] = parse_iso_datetime(item_dict['expiryDate'])
+                    if item_dict.get('usage_limit') is not None: item_dict['usage_limit'] = int(item_dict['usage_limit'])
+                    # Keep expiry_date as string for now, parse when needed
+                    if item_dict.get('expiry_date') is not None: item_dict['expiry_date'] = parse_iso_datetime(item_dict['expiry_date'])
 
                     item_properties[item_dict['itemId']] = item_dict
                     items_ids_to_place.append(item_dict['itemId'])
@@ -541,28 +569,32 @@ def api_logs():
     user_id_filter = request.args.get('userId')
     action_type_filter = request.args.get('actionType')
 
-    start_date = parse_iso_datetime(start_date_str)
-    end_date = parse_iso_datetime(end_date_str)
-
-    if not start_date or not end_date:
-        abort(400, description="Invalid or missing startDate or endDate (ISO format required).")
-
+    start_date = parse_iso_datetime(start_date_str) or datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+    end_date = parse_iso_datetime(end_date_str) or datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
+    print(start_date)
+    print(end_date)
     filtered_logs = []
+    print(activity_log)
     for log in activity_log:
         log_time = parse_iso_datetime(log['timestamp'])
-        if not log_time: continue # Skip invalid log entries
+        if not log_time: print("wha")  # Skip invalid log entries
 
         # Apply filters
-        time_match = start_date <= log_time <= end_date
+        # Ensure all datetime objects are naive for comparison
+        log_time_naive = log_time.replace(tzinfo=None) if log_time else None
+        start_date_naive = start_date.replace(tzinfo=None)
+        end_date_naive = end_date.replace(tzinfo=None)
+
+        time_match = start_date_naive <= log_time_naive <= end_date_naive
         item_match = not item_id_filter or log.get('itemId') == item_id_filter
         user_match = not user_id_filter or log.get('userId') == user_id_filter
         action_match = not action_type_filter or log.get('actionType') == action_type_filter
-
+        print(time_match, item_match, user_match, action_match)
         if time_match and item_match and user_match and action_match:
             filtered_logs.append(log)
 
     # Sort logs? Chronologically is likely default.
-    return jsonify({"logs": filtered_logs})
+    return jsonify({"success":True, "logs": filtered_logs})
 
 
 # --- 7. Functional UI Route ---
@@ -574,5 +606,4 @@ def index():
 # --- Flask App Execution ---
 if __name__ == '__main__':
     #Run on 0.0.0.0 to be accessible within Docker network
-    # Use debug=True only for development, set it to False for production/evaluation scenarios
     app.run(host='0.0.0.0', port=8000, debug=True)

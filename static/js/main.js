@@ -231,13 +231,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const numOfDays = parseInt(formData.get('numOfDays'), 10);
             const itemsToBeUsedPerDayInput = formData.get('itemsToBeUsedPerDay');
             const itemsToBeUsedPerDay = itemsToBeUsedPerDayInput
-                ? itemsToBeUsedPerDayInput.split(',').map(itemId => ({ itemId: itemId.trim() }))
+                ? itemsToBeUsedPerDayInput.split(',').map(itemId => itemId.trim()) // Pass as a list of strings
                 : [];
 
             // Prepare request body
             const body = {
                 numOfDays: numOfDays,
-                itemsToBeUsedPerDay: itemsToBeUsedPerDay
+                itemsToBeUsedPerDay: itemsToBeUsedPerDay // Pass the list directly
             };
 
             // Send API request

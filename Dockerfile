@@ -1,35 +1,33 @@
-# Start from Ubuntu:22.04 as the base image (Hard Requirement)
+# Start from Ubuntu:22.04 as the base image (Hackathon Requirement)
 FROM ubuntu:22.04
 
-# Set environment variables to avoid interactive prompts and ensure logs appear
+# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
-# Update package lists and install Python 3, pip, and build essentials
-# Clean up apt cache afterwards to keep the image smaller
+# Install Python 3 and pip
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 python3-pip python3-dev build-essential && \
+    apt-get install -y --no-install-recommends python3 python3-pip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements file first to leverage Docker cache
-# Assumes you have a requirements.txt listing Flask, pandas, etc.
-# Make sure py3dbp is NOT in requirements.txt if you're copying the source code
+# Copy requirements file
 COPY requirements.txt .
 
-# Install Python dependencies from requirements.txt
+# Install dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy ALL your project code into the container's working directory (/app)
-# This includes app.py, static/, templates/, AND your local py3dbp/ directory
+# Copy the rest of your application code (including main.py)
 COPY . .
 
-# Expose port 8000 (Hard Requirement)
+# Expose port 8000
 EXPOSE 8000
 
-# Define the command to run your Flask application
-# Ensure app.py runs on host='0.0.0.0' to be accessible from outside the container
+# Command to run your Flask app using python directly
+# Assumes your file is main.py and Flask object is app
+# The host/port are set in main.py's app.run() call now
 CMD ["python3", "main.py"]

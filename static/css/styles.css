@@ -63,7 +63,12 @@ pre {
     padding: 10px;
     border-radius: 5px;
     color: #fff;
-    overflow-x: auto;
+    overflow-x: auto; /* Horizontal scrolling */
+    overflow-y: auto; /* Vertical scrolling */
+    max-height: 200px; /* Constrain the height */
+    font-size: 0.9rem; /* Adjust font size for better readability */
+    white-space: pre-wrap; /* Wrap long lines */
+    word-wrap: break-word; /* Break long words */
 }
 
 .hidden {
