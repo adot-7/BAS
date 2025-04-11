@@ -381,7 +381,7 @@ def api_placement():
     result = calculate_placements()
 
    
-    placements = [items for items in current_stowage_state.values() if items]
+    placements = [item for items in current_stowage_state.values() for item in items]
     
     return jsonify({
         "success": True,
