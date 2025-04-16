@@ -48,9 +48,3 @@ This project is designed to be run inside a Docker container, following the Hack
 **To Stop the Application:**
 
 *   Press `CTRL+C` in the terminal where the `docker run` command is active.
-
-**Changes Made:**
-
-*   Ensured code blocks (` ```bash` and ` ``` `) are correctly formatted with triple backticks.
-*   Verified spacing around list items and code blocks for clarity.
-*   Made sure the URL in step 4 is also treated as a simple code block for consistent presentation.
