@@ -1,1 +1,1 @@
-from .main import Packer, Bin, Item, Painter
+from .main import Packer, Bin, Item

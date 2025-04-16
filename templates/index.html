@@ -102,13 +102,19 @@
                         <pre id="searchResult" class="result-output hidden"></pre>
                     </form>
                     <hr class="subtle-divider">
-                     <!-- Confirm Retrieval (Placeholder) -->
+                     <!-- Confirm Retrieval -->
                      <div>
-                        <h3 class="text-sm font-medium text-slate-400 flex items-center gap-2 mb-2"><i class="fas fa-hand-paper text-orange-400"></i>Confirm Item Retrieval</h3>
-                        <div class="status-tag">
-                            <i class="fas fa-tools text-xs"></i> Functionality Under Development
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2">Interface for confirming items removed from stowage will be added here.</p>
+                        <h3 class="text-sm font-medium text-slate-400 flex items-center gap-2 mb-2">
+                            <i class="fas fa-hand-paper text-orange-400"></i>Confirm Item Retrieval
+                        </h3>
+                        <form id="retrieveForm" class="space-y-3">
+                            <label for="retrieveItemId" class="form-label">Item ID to Retrieve</label>
+                            <input type="text" id="retrieveItemId" name="itemId" placeholder="Enter Item ID" required class="form-input w-full">
+                            <button type="submit" class="button button-primary w-full justify-center">
+                                <i class="fas fa-check-circle"></i> Confirm Retrieval
+                            </button>
+                        </form>
+                        <pre id="retrieveResult" class="result-output hidden mt-3"></pre>
                     </div>
                     <hr class="subtle-divider">
                      <!-- Identify Waste -->
@@ -118,6 +124,33 @@
                            <i class="fas fa-search-dollar"></i> Identify Potentially Wasted Items
                         </button>
                         <pre id="wasteIdentifyResult" class="result-output hidden mt-3"></pre>
+                     </div>
+                     <hr class="subtle-divider">
+                     <!-- Waste Return Plan -->
+                     <div>
+                        <h3 class="text-sm font-medium text-slate-400 flex items-center gap-2 mb-2">
+                            <i class="fas fa-clipboard-list text-green-400"></i>Generate Waste Return Plan
+                        </h3>
+                        <form id="wasteReturnPlanForm" class="space-y-3">
+                            <label for="undockingContainerId" class="form-label">Undocking Container ID</label>
+                            <input type="text" id="undockingContainerId" name="undockingContainerId" placeholder="Enter Container ID" required class="form-input w-full">
+
+                            <label for="undockingDate" class="form-label">Undocking Date</label>
+                            <div class="flex gap-2">
+                                <input type="date" id="undockingDate" name="undockingDate" required class="form-input flex-grow">
+                                <button type="button" id="setCurrentDateButton" class="button button-secondary px-4 flex-shrink-0">
+                                    Use Current Date
+                                </button>
+                            </div>
+
+                            <label for="maxWeight" class="form-label">Maximum Weight (kg)</label>
+                            <input type="number" id="maxWeight" name="maxWeight" placeholder="Enter Max Weight" required min="1" class="form-input w-full">
+
+                            <button type="submit" class="button button-primary w-full justify-center">
+                                <i class="fas fa-clipboard-check"></i> Generate Return Plan
+                            </button>
+                        </form>
+                        <pre id="wasteReturnPlanResult" class="result-output hidden mt-3"></pre>
                      </div>
                 </div>
             </section>
@@ -167,38 +200,44 @@
                         </a>
                     </div>
                     <hr class="subtle-divider">
-                    <!-- Filter Logs -->
-                     <form id="logsForm" class="space-y-4">
-                         <h3 class="text-sm font-medium text-slate-400">Filter Activity Logs</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="logStartDate" class="form-label">Start Date</label>
-                                <input type="text" id="logStartDate" name="startDate" placeholder="YYYY-MM-DD..." class="form-input w-full">
+                    <!-- Activity Logs -->
+                    <div>
+                        <h3 class="text-sm font-medium text-slate-400 flex items-center gap-2 mb-2">
+                            <i class="fas fa-file-alt text-blue-400"></i>Activity Logs
+                        </h3>
+                        <form id="logsForm" class="space-y-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <div class="flex gap-2">
+                                <input type="date" id="startDate" name="startDate" class="form-input flex-grow">
+                                <button type="button" id="setEarliestDateButton" class="button button-secondary px-4 flex-shrink-0">
+                                    Earliest Date
+                                </button>
                             </div>
-                            <div>
-                                 <label for="logEndDate" class="form-label">End Date</label>
-                                <input type="text" id="logEndDate" name="endDate" placeholder="YYYY-MM-DD..." class="form-input w-full">
+
+                            <label for="endDate" class="form-label">End Date</label>
+                            <div class="flex gap-2">
+                                <input type="date" id="endDate" name="endDate" class="form-input flex-grow">
+                                <button type="button" id="setLatestDateButton" class="button button-secondary px-4 flex-shrink-0">
+                                    Latest Date
+                                </button>
                             </div>
-                        </div>
-                         <div class="grid grid-cols-2 gap-4">
-                             <div>
-                                 <label for="logItemId" class="form-label">Item ID</label>
-                                <input type="text" id="logItemId" name="itemId" placeholder="item-xyz" class="form-input w-full">
-                            </div>
-                            <div>
-                                 <label for="logUserId" class="form-label">User ID</label>
-                                <input type="text" id="logUserId" name="userId" placeholder="user123" class="form-input w-full">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="logActionType" class="form-label">Action Type</label>
-                             <input type="text" id="logActionType" name="actionType" placeholder="e.g., placement, retrieval" class="form-input w-full">
-                        </div>
-                         <button type="submit" class="button button-primary w-full justify-center">
-                            <i class="fas fa-filter"></i> Filter Logs
-                        </button>
-                    </form>
-                     <pre id="logsResult" class="result-output hidden mt-4"></pre>
+
+                            <label for="itemId" class="form-label">Item ID</label>
+                            <input type="text" id="itemId" name="itemId" placeholder="Enter Item ID" class="form-input w-full">
+
+                            <label for="userId" class="form-label">User ID</label>
+                            <input type="text" id="userId" name="userId" placeholder="Enter User ID" class="form-input w-full">
+
+                            <label for="actionType" class="form-label">Action Type</label>
+                            <input type="text" id="actionType" name="actionType" placeholder="Enter Action Type" class="form-input w-full">
+
+                            <button type="submit" class="button button-primary w-full justify-center">
+                                <i class="fas fa-search"></i> Search Logs
+                            </button>
+                        </form>
+                        <pre id="logsResult" class="result-output hidden mt-3"></pre>
+                    </div>
+                    <hr class="subtle-divider">
                 </div>
             </section>
 

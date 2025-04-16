@@ -248,6 +248,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logs Form
     const logsForm = document.getElementById('logsForm');
     if (logsForm) {
+        const setEarliestDateButton = document.getElementById('setEarliestDateButton');
+        const setLatestDateButton = document.getElementById('setLatestDateButton');
+
+        // Set the earliest date
+        if (setEarliestDateButton) {
+            setEarliestDateButton.addEventListener('click', () => {
+                const earliestDate = '2023-01-01'; // Replace with the actual earliest date if available
+                document.getElementById('startDate').value = earliestDate;
+            });
+        }
+
+        // Set the latest date
+        if (setLatestDateButton) {
+            setLatestDateButton.addEventListener('click', () => {
+                const latestDate = new Date(Date.now() + 86400000).toISOString().split('T')[0]; // Get the date one day ahead in YYYY-MM-DD format
+                document.getElementById('endDate').value = latestDate;
+            });
+        }
+
         logsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(logsForm);
@@ -265,16 +284,104 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Remove Waste Return Plan Form logic
+    // Waste Return Plan
     const wasteReturnPlanForm = document.getElementById('wasteReturnPlanForm');
     if (wasteReturnPlanForm) {
-        wasteReturnPlanForm.remove(); // Remove the form element if it exists
+        // Set current date when the button is clicked
+        const setCurrentDateButton = document.getElementById('setCurrentDateButton');
+        if (setCurrentDateButton) {
+            setCurrentDateButton.addEventListener('click', () => {
+                const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+                document.getElementById('undockingDate').value = today;
+            });
+        }
+
+        // Handle form submission
+        wasteReturnPlanForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent default form submission
+            const formData = new FormData(wasteReturnPlanForm);
+            const resultElementId = 'wasteReturnPlanResult';
+            clearResult(resultElementId); // Clear previous results
+
+            // Prepare the request body
+            const body = {
+                undockingContainerId: formData.get('undockingContainerId'),
+                undockingDate: formData.get('undockingDate'),
+                maxWeight: parseFloat(formData.get('maxWeight'))
+            };
+
+            try {
+                const response = await fetch('/api/waste/return-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const resultData = await response.json();
+
+                if (!response.ok || !resultData.success) {
+                    throw new Error(resultData.description || resultData.message || `Return plan generation failed (Status: ${response.status})`);
+                }
+
+                // Display the result in JSON format
+                displayResult(resultElementId, resultData);
+                showMessage('Waste return plan generated successfully!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+
+                // Display the error in JSON format
+                const errorData = {
+                    error: error.message
+                };
+                displayResult(resultElementId, errorData);
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        });
     }
 
     // Remove Complete Undocking Form logic
     const completeUndockingForm = document.getElementById('completeUndockingForm');
     if (completeUndockingForm) {
         completeUndockingForm.remove(); // Remove the form element if it exists
+    }
+
+    // Confirm Retrieval
+    const retrieveForm = document.getElementById('retrieveForm');
+    if (retrieveForm) {
+        retrieveForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent default form submission
+            const formData = new FormData(retrieveForm);
+            const itemId = formData.get('itemId'); // Get the item ID from the form
+            const resultElementId = 'retrieveResult';
+            clearResult(resultElementId); // Clear previous results
+
+            try {
+                const response = await fetch('/api/retrieve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemId: parseInt(itemId, 10) }) // Send item ID as JSON
+                });
+
+                const resultData = await response.json();
+
+                if (!response.ok || !resultData.success) {
+                    throw new Error(resultData.description || resultData.message || `Retrieval failed (Status: ${response.status})`);
+                }
+
+                // Display the result in JSON format
+                displayResult(resultElementId, resultData);
+                showMessage(`Item ${itemId} retrieved successfully!`, 'success');
+            } catch (error) {
+                console.error('Error:', error);
+
+                // Display the error in JSON format
+                const errorData = {
+                    error: error.message
+                };
+                displayResult(resultElementId, errorData);
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        });
     }
 
 });
